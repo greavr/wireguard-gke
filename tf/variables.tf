@@ -16,6 +16,10 @@ variable "region" {
     default = "us-central1"
 }
 
+variable "region-dr" { 
+    type = string
+    default = "us-west1"
+}
 # Instance Zone
 variable "zone" { 
     type = string

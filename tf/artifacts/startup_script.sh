@@ -11,3 +11,7 @@ sudo mkdir -p /export/kubernetes
 sudo chown nobody:nogroup /export/kubernetes
 echo "/export/kubernetes               10.0.0.0/8(rw,sync,no_root_squash,no_subtree_check)" >> /etc/exports
 sudo systemctl restart nfs-kernel-server
+
+## Install Docker
+ curl -fsSL https://test.docker.com -o test-docker.sh
+ sudo sh test-docker.sh
