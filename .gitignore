@@ -210,3 +210,7 @@ cython_debug/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Cilium Specific #
+###################
+install-external-workload.sh
