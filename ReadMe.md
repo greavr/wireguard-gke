@@ -1,6 +1,45 @@
+## Outline
+Create two GKE confidential compute clusters, one GCE confidential compute instance. On the GCE instance will install NFS-Server and mount a share __/export/kubernetes__, for use in a GKE POD volume mount. It will also create required firewall rules and components for wireguard.
+
+## Compontents used:
+- **Terraform**
+    - Used to provision GCP Resources
+- **Kubectl**
+    - Used to configure kubernetes clusters
+- **Cilium CLI**
+    - Used to configure Cilium (post helm install)
+- **Helm**
+    - Install Cilium on cluster with required values
+- **Gcloud**
+    - Send commands to GCE instances
+
+## Terraform Output:
+- **gce_scp**
+    - Used to generate cli bash command to upload Cilium serrver agent to upload cilium remote-server install script
+- **gce_ssh**
+    - Used to generate cli bash command to remote execute cilium server agent install script
+- **gke_connection_command**
+    - Used to get kubectl context for primary cluster
+- **gke_dr_connection_command**
+    - Used to get kubectl context for dr cluster
+
+# Tool Setup Guide
+
+## Install gcloud
+Install Guide [Found Here](https://cloud.google.com/sdk/docs/install)
+```
+sudo apt-get install -y apt-transport-https ca-certificates gnupg
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+sudo apt-get update && sudo apt-get install google-cloud-sdk
+```
+Then login to the GCLOUD toolkit with:
+```
+gcloud init
+```
+
 ## Install TF
 Install Guide [Found Here](https://learn.hashicorp.com/tutorials/terraform/install-cli)
-
 ```
 sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
 curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
@@ -38,7 +77,7 @@ terraform apply -auto-approve
 ```
 
 
-## Connect To GKE and Run Manifests
+## Capture / Create Bash Variables
 Get kubernetes context:
 ```
 gke=$(terraform output gke_connection_command | tr -d '"')
