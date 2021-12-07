@@ -13,5 +13,7 @@ echo "/export/kubernetes               10.0.0.0/8(rw,sync,no_root_squash,no_subt
 sudo systemctl restart nfs-kernel-server
 
 ## Install Docker
- curl -fsSL https://test.docker.com -o test-docker.sh
- sudo sh test-docker.sh
+curl -fsSL https://test.docker.com -o test-docker.sh
+sudo sh test-docker.sh
+
+sudo usermod -aG docker $(logname)
