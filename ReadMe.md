@@ -25,69 +25,28 @@ Create two GKE confidential compute clusters, one GCE confidential compute insta
 
 # Tool Setup Guide
 
-## Install gcloud
-Install Guide [Found Here](https://cloud.google.com/sdk/docs/install)
-```
-sudo apt-get install -y apt-transport-https ca-certificates gnupg
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-sudo apt-get update && sudo apt-get install google-cloud-sdk
-```
-Then login to the GCLOUD toolkit with:
-```
-gcloud init
-```
+[Tool Install Guide](tools/ReadMe.md)
 
-## Install TF
-Install Guide [Found Here](https://learn.hashicorp.com/tutorials/terraform/install-cli)
-```
-sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
-curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-sudo apt-get update && sudo apt-get install terraform
-terraform -install-autocomplete
-```
+# Install Guide
 
-## Install Kubectl
-```
-sudo apt-get install kubectl
-```
-
-## Install Helm
-Install Guide [Found Here](https://helm.sh/docs/intro/install/)
-```
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-```
-
-## Install Cilium CLI
-Install Guide [Found Here](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/
-```
-curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz{,.sha256sum}
-sha256sum --check cilium-linux-amd64.tar.gz.sha256sum
-sudo tar xzvfC cilium-linux-amd64.tar.gz /usr/local/bin
-rm cilium-linux-amd64.tar.gz{,.sha256sum}
-```
-
-## Run TF
+## Run Terrafrom and capture output
+From workstation run terraform commands
 ```
 cd tf/
 terraform init
 terraform plan
 terraform apply -auto-approve
 ```
-
-
-## Capture / Create Bash Variables
-Get kubernetes context:
+Now we will capture the terraform outputs to environment variables
 ```
 gke=$(terraform output gke_connection_command | tr -d '"')
 gke_dr=$(terraform output gke_dr_connection_command | tr -d '"')
 gce_ssh=$(terraform output gce_ssh | tr -d '"')
 gce_scp=$(terraform output gce_scp | tr -d '"')
+nfs_ip=$(terraform output instance_ip_addr | tr -d '"')
 eval "$gke"
 ```
 
-# Install Guide
 ## Install Cilium
 **Generate IPsec Key**
 ```
@@ -108,6 +67,7 @@ helm install cilium cilium/cilium --version 1.10.5 \
    --set encryption.nodeEncryption=false \
    --set identityAllocationMode=kvstore \
    --set encryption.type=ipsec \
+   --set externalWorkloads.enabled=true \
    --set cluster.id=1 \
    --set cluster.name=matrixx \
    --set cni.binPath=/home/kubernetes/bin
@@ -120,7 +80,8 @@ cilium clustermesh enable \
    --create-ca
 ```
 
-**Join the GCE Instance to the cluster mesh using [Cilium External Workloads](https://docs.cilium.io/en/v1.10/gettingstarted/external-workloads/)**
+**Join the GCE Instance to the cluster mesh using**
+Based on: [Cilium External Workloads](https://docs.cilium.io/en/v1.10/gettingstarted/external-workloads/)<br />
 From the CLI run the command:
 ```
 cilium clustermesh vm create gce-wireguard -n default --ipv4-alloc-cidr 10.192.1.0/30
@@ -130,6 +91,7 @@ cilium clustermesh vm create gce-wireguard -n default --ipv4-alloc-cidr 10.192.1
 ```
 cilium clustermesh vm install install-external-workload.sh
 ```
+
 **Now copy the file to the instance and run the script**
 ```
 eval $gce_scp
@@ -143,6 +105,18 @@ The above command will install the cilium agent and join the instance to the clu
 cilium clustermesh vm status
 ```
 
+# Setup Multi-cluster Server Mesh
+[Install Guide](multi-cluster/ReadMe.md)
+
+# Run Sample pod with NFS Volume
+Update the __sample-pod.yaml__ with the NFS Server IP
+```
+sed -i "s/NFS-SERVER-IP/$nfs_ip/g" ../kubernetes/sample-pod.yaml
+kubectl apply -f ../kubernetes/sample-pod.yaml
+```
+
+# Debug / Troubleshooting
+[Debug Guide](debug/ReadMe.md)
 
 ## Clean Up
 Destroy with Terraform

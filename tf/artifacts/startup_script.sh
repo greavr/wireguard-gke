@@ -1,6 +1,6 @@
 #! /bin/bash
 sudo apt update
-sudo apt install -y wireguard nfs-kernel-server nfs-common curl
+sudo apt install -y wireguard nfs-kernel-server nfs-common curl tcpdump 
 
 ## Install CloudOps
 curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
