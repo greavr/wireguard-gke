@@ -22,6 +22,10 @@ Create two GKE confidential compute clusters, one GCE confidential compute insta
     - Used to get kubectl context for primary cluster
 - **gke_dr_connection_command**
     - Used to get kubectl context for dr cluster
+- **gke_context1**
+    - The kubectl context name created for GKE Primary cluster. Used for multi-cluster setup
+- **gke_context2**
+    - The kubectl context name created for GKE DR cluster. Used for multi-cluster setup
 
 # Tool Setup Guide
 
@@ -69,7 +73,7 @@ helm install cilium cilium/cilium --version 1.10.5 \
    --set encryption.type=ipsec \
    --set externalWorkloads.enabled=true \
    --set cluster.id=1 \
-   --set cluster.name=matrixx \
+   --set cluster.name=primary \
    --set cni.binPath=/home/kubernetes/bin
 ```
 This configures internode encryption using IPsec, and configured cilium to create its own ETCD used for multi-cluster meshing. Each cluster must be set with a unique **cluster.id** however **cluster.name** must be shared amongst all clusters in the environment.

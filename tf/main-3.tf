@@ -93,6 +93,14 @@ output "gke_connection_command" {
   value = format("gcloud container clusters get-credentials %s --region %s --project %s",google_container_cluster.primary.name,var.region,var.gcp-project-name)
 }
 
+output "gke_context1" {
+  value = format("export CLUSTER1='gke_%s_%s_%s'",var.gcp-project-name,var.region,google_container_cluster.primary.name)
+}
+
 output "gke_dr_connection_command" {
   value = format("gcloud container clusters get-credentials %s --region %s --project %s",google_container_cluster.backup.name,var.region-dr,var.gcp-project-name)
+}
+
+output "gke_context2" {
+  value = format("export CLUSTER2='gke_%s_%s_%s'",var.gcp-project-name,var.region-dr,google_container_cluster.backup.name)
 }
