@@ -8,8 +8,6 @@ Create two GKE confidential compute clusters, one GCE confidential compute insta
     - Used to configure kubernetes clusters
 - **Cilium CLI**
     - Used to configure Cilium (post helm install)
-- **Helm**
-    - Install Cilium on cluster with required values
 - **Gcloud**
     - Send commands to GCE instances
 
@@ -48,47 +46,40 @@ gke_dr=$(terraform output gke_dr_connection_command | tr -d '"')
 gce_ssh=$(terraform output gce_ssh | tr -d '"')
 gce_scp=$(terraform output gce_scp | tr -d '"')
 nfs_ip=$(terraform output instance_ip_addr | tr -d '"')
+eval $(terraform output gke_context1 | tr -d '"')
+eval $(terraform output gke_context2 | tr -d '"')
 eval "$gke"
 ```
 
 ## Install Cilium
-**Generate IPsec Key**
+**Primary Cluster**
 ```
-kubectl create -n kube-system secret generic cilium-ipsec-keys \
-    --from-literal=keys="3 rfc4106(gcm(aes)) $(echo $(dd if=/dev/urandom count=20 bs=1 2> /dev/null | xxd -p -c 64)) 128"
+eval "$gke"
+cilium install --cluster-id 1 --cluster-name gke --encryption ipsec
+cilium clustermesh enable
+kubectl get secret -n kube-system -o yaml cilium-ipsec-keys > cilium-ipsec-keys.yaml
 ```
-
-**Configure Cilium Cluster with Helm**
+**Secondary Cluster**
 ```
-helm repo add cilium https://helm.cilium.io/
-
-helm install cilium cilium/cilium --version 1.10.5 \
-   --namespace kube-system \
-   --set etcd.enabled=true \
-   --set etcd.managed=true \
-   --set etcd.k8sService=true \
-   --set encryption.enabled=true \
-   --set encryption.nodeEncryption=false \
-   --set identityAllocationMode=kvstore \
-   --set encryption.type=ipsec \
-   --set externalWorkloads.enabled=true \
-   --set cluster.id=1 \
-   --set cluster.name=primary \
-   --set cni.binPath=/home/kubernetes/bin
+eval "$gke_dr"
+kubectl apply -f cilium-ipsec-keys.yaml
+cilium install --cluster-id 2 --cluster-name backup --encryption ipsec --inherit-ca $CLUSTER1
+cilium clustermesh enable
 ```
 This configures internode encryption using IPsec, and configured cilium to create its own ETCD used for multi-cluster meshing. Each cluster must be set with a unique **cluster.id** however **cluster.name** must be shared amongst all clusters in the environment.
 
 **Now we create the cluster mesh**
 ```
-cilium clustermesh enable \
-   --create-ca
+cilium --context $CLUSTER1 clustermesh connect --destination-context $CLUSTER2
 ```
 
+## UNDER REVIEW
+This content is not currently working using the simpler server mesh. As of : **01/27/2022**
 **Join the GCE Instance to the cluster mesh using**
 Based on: [Cilium External Workloads](https://docs.cilium.io/en/v1.10/gettingstarted/external-workloads/)<br />
 From the CLI run the command:
 ```
-cilium clustermesh vm create gce-wireguard -n default --ipv4-alloc-cidr 10.192.1.0/30
+cilium clustermesh vm create gce-nfs -n default --ipv4-alloc-cidr 10.192.1.0/30
 ```
 
 **Now we install and configure cilium on external workloads**
@@ -108,9 +99,6 @@ The above command will install the cilium agent and join the instance to the clu
 ```
 cilium clustermesh vm status
 ```
-
-# Setup Multi-cluster Server Mesh
-[Install Guide](multi-cluster/ReadMe.md)
 
 # Run Sample pod with NFS Volume
 Update the __sample-pod.yaml__ with the NFS Server IP

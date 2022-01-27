@@ -1,7 +1,7 @@
 # GCP Project Name
 variable "gcp-project-name" {
     type = string
-    default = "rgreaves-wireguard"
+    default = "rgreaves-sandbox"
 }
 
 # GCP VPC

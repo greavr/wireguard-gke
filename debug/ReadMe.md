@@ -38,4 +38,10 @@ On GCE Instance
 ping $(cilium service list get -o jsonpath='{[?(@.spec.flags.name=="clustermesh-apiserver")].spec.backend-addresses[0].ip}')
 ```
 
+### Check Connectivity between clusters
+From any machine (requires context environment variables from multi-cluster, these are just kubernetes context names)
+```
+cilium connectivity test --context $CLUSTER1 --multi-cluster $CLUSTER2
+```
+
 [Main Page](../)

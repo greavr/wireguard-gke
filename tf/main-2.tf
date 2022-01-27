@@ -1,6 +1,6 @@
 ## Create GCE Instance used for wireguard and NFS Server
-resource "google_compute_instance" "gce-wireguard" {
-    name         = "gce-wireguard"
+resource "google_compute_instance" "gce-nfs" {
+    name         = "gce-nfs"
     machine_type = "n2d-standard-2"
     zone         = var.zone
 
@@ -44,13 +44,13 @@ resource "google_compute_instance" "gce-wireguard" {
 
 ## Output Instance IP
 output "instance_ip_addr" {
-  value = google_compute_instance.gce-wireguard.network_interface.0.network_ip 
+  value = google_compute_instance.gce-nfs.network_interface.0.network_ip 
 }
 
 output "gce_ssh" {
-    value = format("gcloud beta compute ssh --zone '%s' '%s' --project '%s' --command='chmod +x ~/install-external-workload.sh && sudo ~/install-external-workload.sh && cilium status'",var.zone,google_compute_instance.gce-wireguard.name,var.gcp-project-name)
+    value = format("gcloud beta compute ssh --zone '%s' '%s' --project '%s' --command='chmod +x ~/install-external-workload.sh && sudo ~/install-external-workload.sh && cilium status'",var.zone,google_compute_instance.gce-nfs.name,var.gcp-project-name)
 }
 
 output "gce_scp"{
-    value = format("gcloud compute scp ./install-external-workload.sh %s:~/install-external-workload.sh --zone=%s",google_compute_instance.gce-wireguard.name, var.zone)
+    value = format("gcloud compute scp ./install-external-workload.sh %s:~/install-external-workload.sh --zone=%s",google_compute_instance.gce-nfs.name, var.zone)
 }

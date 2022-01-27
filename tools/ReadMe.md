@@ -26,12 +26,6 @@ terraform -install-autocomplete
 sudo apt-get install kubectl
 ```
 
-## Install Helm
-Install Guide [Found Here](https://helm.sh/docs/intro/install/)
-```
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-```
-
 ## Install Cilium CLI
 Install Guide [Found Here](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/
 ```

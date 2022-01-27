@@ -1,0 +1,10 @@
+spec:
+  template:
+    spec:
+      hostAliases:
+      - ip: "10.128.0.19"
+        hostnames:
+        - primary.mesh.cilium.io
+      - ip: "10.138.0.19"
+        hostnames:
+        - dr.mesh.cilium.io
